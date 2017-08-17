@@ -48,7 +48,7 @@ bool exampleFocusHook(const char *command) {
 }
 
 void setup() {
-  USE_PLUGINS(&Focus);
+  Kaleidoscope.use(&Focus);
 
   Kaleidoscope.setup();
 

@@ -31,8 +31,8 @@ like this:
 void setup () {
   Serial.begin (9600);
 
-  USE_PLUGINS (&Focus);
-  
+  Kaleidoscope.use (&Focus);
+
   Kaleidoscope.setup ();
 
   Focus.addHook (FOCUS_HOOK_HELP);
@@ -73,7 +73,7 @@ The plugin ships with two (optional) hooks: `FOCUS_HOOK_VERSION`, and
 
 ## Wire protocol
 
-`Focus` uses a simple, textual, request-response-based wire protocol. 
+`Focus` uses a simple, textual, request-response-based wire protocol.
 
 Each request has to be on one line, anything before the first space is the
 command part (if there is no space, just a newline, then the whole line will be

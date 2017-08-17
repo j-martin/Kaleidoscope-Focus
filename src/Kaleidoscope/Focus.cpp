@@ -28,7 +28,7 @@ Focus::Focus(void) {
 }
 
 void Focus::begin(void) {
-  loop_hook_use(loopHook);
+  Kaleidoscope.useLoopHook(loopHook);
 }
 
 void Focus::drain(void) {
