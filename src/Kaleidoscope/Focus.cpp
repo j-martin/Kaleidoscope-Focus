@@ -17,7 +17,10 @@
  */
 
 #include <Kaleidoscope-Focus.h>
+
+#ifdef __AVR__
 #include <avr/pgmspace.h>
+#endif
 
 namespace kaleidoscope {
 
