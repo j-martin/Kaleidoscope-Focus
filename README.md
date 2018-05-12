@@ -28,10 +28,10 @@ like this:
 #include <Kaleidoscope.h>
 #include <Kaleidoscope-Focus.h>
 
+KALEIDOSCOPE_INIT_PLUGINS(Focus);
+
 void setup () {
   Serial.begin (9600);
-
-  Kaleidoscope.use (&Focus);
 
   Kaleidoscope.setup ();
 

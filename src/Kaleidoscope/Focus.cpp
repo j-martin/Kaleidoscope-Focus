@@ -1,6 +1,6 @@
 /* -*- mode: c++ -*-
  * Kaleidoscope-Focus -- Bidirectional communication plugin
- * Copyright (C) 2017  Gergely Nagy
+ * Copyright (C) 2017, 2018  Gergely Nagy
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,13 +27,6 @@ namespace kaleidoscope {
 char Focus::command_[32];
 Focus::HookNode *Focus::root_node_;
 
-Focus::Focus(void) {
-}
-
-void Focus::begin(void) {
-  Kaleidoscope.useLoopHook(loopHook);
-}
-
 void Focus::drain(void) {
   if (Serial.available())
     while (Serial.peek() != '\n')
@@ -53,12 +46,9 @@ void Focus::addHook(HookNode *new_node) {
   }
 }
 
-void Focus::loopHook(bool is_post_clear) {
-  if (is_post_clear)
-    return;
-
+EventHandlerResult Focus::beforeReportingState() {
   if (Serial.available() == 0)
-    return;
+    return EventHandlerResult::OK;
 
   uint8_t i = 0;
   do {
@@ -84,6 +74,8 @@ void Focus::loopHook(bool is_post_clear) {
 
   if (Serial.peek() == '\n')
     Serial.read();
+
+  return EventHandlerResult::OK;
 }
 
 void Focus::printSpace(void) {
@@ -141,6 +133,20 @@ bool Focus::versionHook(const char *command) {
 
   return true;
 }
+
+// Legacy V1 API
+#if KALEIDOSCOPE_ENABLE_V1_PLUGIN_API
+void Focus::begin() {
+  Kaleidoscope.useLoopHook(legacyLoopHook);
+}
+
+void Focus::legacyLoopHook(bool is_post_clear) {
+  if (is_post_clear)
+    return;
+
+  ::Focus.beforeReportingState();
+}
+#endif
 
 }
 
