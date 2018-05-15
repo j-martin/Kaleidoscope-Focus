@@ -1,6 +1,6 @@
 /* -*- mode: c++ -*-
  * Kaleidoscope-Focus -- Bidirectional communication plugin
- * Copyright (C) 2017  Gergely Nagy
+ * Copyright (C) 2017, 2018  Gergely Nagy
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 #endif
 
 namespace kaleidoscope {
-class Focus : public KaleidoscopePlugin {
+class Focus : public kaleidoscope::Plugin {
  public:
   typedef bool (*Hook)(const char *command);
   typedef struct HookNode {
@@ -44,9 +44,7 @@ class Focus : public KaleidoscopePlugin {
     HookNode *next;
   } HookNode;
 
-  Focus(void);
-
-  void begin(void) final;
+  Focus(void) {}
 
   static void addHook(HookNode *new_node);
 
@@ -61,11 +59,18 @@ class Focus : public KaleidoscopePlugin {
   static bool helpHook(const char *command);
   static bool versionHook(const char *command);
 
+  EventHandlerResult beforeReportingState();
+
+#if KALEIDOSCOPE_ENABLE_V1_PLUGIN_API
+ protected:
+  void begin();
+  static void legacyLoopHook(bool is_post_clear);
+#endif
+
  private:
   static HookNode *root_node_;
   static char command_[32];
 
-  static void loopHook(bool is_post_clear);
   static void drain(void);
 };
 };
