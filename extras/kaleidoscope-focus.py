@@ -1,6 +1,6 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 ## kaleidoscope-focus -- Bidirectional communication plugin, host helper
-## Copyright (C) 2017  Gergely Nagy
+## Copyright (C) 2017  Gergely Nagy, Jesus Alvarez
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -21,57 +21,114 @@ import time
 import os
 import readline
 import atexit
+import io
+import signal
+import traceback
+import argparse
 
 class Commander (object):
+    serial = None
+    _args = None
+    _ser = None
+
+    def __init__(self, args):
+        self.connect()
+        self._args = args
+
+    def connect(self):
+        self._ser = serial.Serial("/dev/ttyACM0", baudrate=9600, bytesize=8, parity='N', stopbits=1, timeout=5, write_timeout=5)
+        self.serial = io.TextIOWrapper(io.BufferedRWPair(self._ser, self._ser))
+
+    def echo(self, text="", prompt=True):
+        if self._args.quiet:
+            return
+        if prompt:
+            print("> {}".format(text))
+            return
+        print("{}".format(text))
+
+    def close(self):
+        if self._ser.is_open:
+            self.echo("closing connection...")
+            self._ser.close()
+
+    def write(self, text):
+        if not self._ser.is_open:
+            self.connect()
+        self._ser.write(text.encode())
+        if '\n' not in text:
+            self._ser.write(b'\n')
+
+    def history(self):
+        # FIXME: not working
+        histfile = os.path.join (os.path.expanduser ("~"), ".kaleidoscope-commander.hist")
+        try:
+            readline.read_history_file (histfile)
+        except IOError:
+            pass
+        atexit.register (readline.write_history_file, histfile)
+
     def run (self):
-        cmd = raw_input ("> ");
+        if self._args.quiet:
+            cmd = input();
+        else:
+            cmd = input("> ");
 
         if cmd == "quit" or cmd == "exit":
+            self.close()
             sys.exit (0)
 
         if cmd == "":
             return
 
-        print ""
+        self.write(cmd)
 
-        hadOutput = False
-        with serial.Serial ("/dev/ttyACM0", 9600, timeout = 1) as ser:
-            ser.write (cmd)
-            ser.write ("\n")
-            while True:
-                resultLine = ser.readline ()
+        while True:
+            resultLine = self.serial.readline()
+            if len(resultLine) == 0:
+                self.echo("no output")
+                break
 
-                if resultLine == "\r\n" or resultLine == "\n":
-                    resultLine = " "
-                else:
-                    resultLine = resultLine.rstrip ()
+            if resultLine == "\r\n" or resultLine == "\n":
+                resultLine = " "
+            else:
+                resultLine = resultLine.rstrip ()
 
-                if resultLine == ".":
-                    break
+            if resultLine == ".":
+                break
 
-                if resultLine:
-                    hadOutput = True
-                    print "<", resultLine
+            if resultLine:
+                prompt = ""
+                if not self._args.quiet:
+                    prompt = "< "
+                print("{}{}".format(prompt, resultLine))
 
-        if hadOutput:
-            print ""
 
-commander = Commander ()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-q", "--quiet", action="store_true", help="foo help")
+    args = parser.parse_args()
 
-histfile = os.path.join (os.path.expanduser ("~"), ".kaleidoscope-commander.hist")
-try:
-    readline.read_history_file (histfile)
-except IOError:
-    pass
-atexit.register (readline.write_history_file, histfile)
+    cli = Commander(args)
 
-while True:
-    try:
-        commander.run ()
-    except EOFError:
-        sys.exit (0)
-    except Exception:
-        print "WARNING: Connection to serial lost, sleeping 10s..."
-        time.sleep (10)
-        print "WARNING: Sleep over, resuming!"
-        pass
+    def _signal_handler(signum, frame):
+        cli.echo(prompt=False)
+        cli.echo("bye!")
+        cli.close()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, _signal_handler)
+
+    cli.connect()
+
+    while True:
+        try:
+            cli.run ()
+        except EOFError:
+            cli.close()
+            sys.exit(0)
+        except Exception as e:
+            cli.echo("ERROR!")
+            traceback.print_exc()
+            cli.close()
+            sys.exit(1)
