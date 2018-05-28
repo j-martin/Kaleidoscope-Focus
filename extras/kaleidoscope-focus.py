@@ -32,11 +32,12 @@ class Commander (object):
     _ser = None
 
     def __init__(self, args):
-        self.connect()
         self._args = args
+        self.connect()
 
     def connect(self):
-        self._ser = serial.Serial("/dev/ttyACM0", baudrate=9600, bytesize=8, parity='N', stopbits=1, timeout=5, write_timeout=5)
+        self._ser = serial.Serial(self._args.device, baudrate=9600, bytesize=8,
+                                  parity='N', stopbits=1, timeout=5, write_timeout=5)
         self.serial = io.TextIOWrapper(io.BufferedRWPair(self._ser, self._ser))
 
     def echo(self, text="", prompt=True):
@@ -107,6 +108,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-q", "--quiet", action="store_true",
                         help="Operate quietly, only displaying raw communication")
+    parser.add_argument("-d", "--device", action="store",
+                        help="Device to open (defaults to `/dev/ttyACM0`)",
+                        default="/dev/ttyACM0")
     args = parser.parse_args()
 
     cli = Commander(args)
