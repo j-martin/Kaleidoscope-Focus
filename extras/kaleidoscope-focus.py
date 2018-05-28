@@ -105,7 +105,8 @@ class Commander (object):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-q", "--quiet", action="store_true", help="foo help")
+    parser.add_argument("-q", "--quiet", action="store_true",
+                        help="Operate quietly, only displaying raw communication")
     args = parser.parse_args()
 
     cli = Commander(args)
