@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 ## kaleidoscope-focus -- Bidirectional communication plugin, host helper
-## Copyright (C) 2017  Gergely Nagy, Jesus Alvarez
+## Copyright (C) 2017, 2018  Gergely Nagy, Jesus Alvarez
 ##
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -60,7 +60,6 @@ class Commander (object):
             self._ser.write(b'\n')
 
     def history(self):
-        # FIXME: not working
         histfile = os.path.join (os.path.expanduser ("~"), ".kaleidoscope-commander.hist")
         try:
             readline.read_history_file (histfile)
@@ -120,6 +119,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, _signal_handler)
 
     cli.connect()
+    cli.history()
 
     while True:
         try:
