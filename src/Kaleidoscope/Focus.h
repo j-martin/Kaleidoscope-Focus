@@ -55,6 +55,8 @@ class Focus : public kaleidoscope::Plugin {
   static void printSeparator(void);
   static void printBool(bool b);
 
+  static void readColor(cRGB &color);
+
   /* Hooks */
   static bool helpHook(const char *command);
   static bool versionHook(const char *command);

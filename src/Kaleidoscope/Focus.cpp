@@ -102,6 +102,12 @@ void Focus::printBool(bool b) {
   Serial.print((b) ? F("true") : F("false"));
 }
 
+void Focus::readColor(cRGB &color) {
+  color.r = Serial.parseInt();
+  color.g = Serial.parseInt();
+  color.b = Serial.parseInt();
+}
+
 bool Focus::helpHook(const char *command) {
   if (strcmp_P(command, PSTR("help")) != 0)
     return false;
